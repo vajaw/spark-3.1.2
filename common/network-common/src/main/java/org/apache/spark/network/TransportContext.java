@@ -107,6 +107,7 @@ public class TransportContext implements Closeable {
    * @param conf TransportConf
    * @param rpcHandler RpcHandler responsible for handling requests and responses.
    * @param closeIdleConnections Close idle connections if it is set to true.
+   *                             关闭限闲置的连接，如果设为true
    * @param isClientOnly This config indicates the TransportContext is only used by a client.
    *                     This config is more important when external shuffle is enabled.
    *                     It stops creating extra event loop and subsequent thread pool

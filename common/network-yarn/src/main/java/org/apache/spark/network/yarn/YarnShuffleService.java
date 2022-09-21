@@ -173,13 +173,22 @@ public class YarnShuffleService extends AuxiliaryService {
       }
 
       TransportConf transportConf = new TransportConf("shuffle", new HadoopConfigProvider(conf));
+
+      // 当然externalblock处理也需要merge策略
+      // Spark3.2实现的push base shuffle增强shuffle性能
+      // SPARK-30602 https://github.com/apache/spark/pull/33615
       MergedShuffleFileManager shuffleMergeManager = newMergedShuffleFileManagerInstance(
         transportConf);
+
+      // 一个RPC服务，可以同时服务 RDD block 以及 Executor 外部的 shuffle block
+      // 处理注册Executor 处理打开shuffle block 或者 RDD 持久在磁盘的 block
+      // 这些块被"one-for-one" 策略注册，意味着每个传输层(Transport-layer)Chunk 相当于一个block
       blockHandler = new ExternalBlockHandler(
         transportConf, registeredExecutorFile, shuffleMergeManager);
 
       // If authentication is enabled, set up the shuffle server to use a
       // special RPC handler that filters out unauthenticated fetch requests
+      // 如果启用了身份验证，请将shuffle服务器设置为使用一个特殊的RPC处理程序来过滤未经身份验证的fetch requests
       List<TransportServerBootstrap> bootstraps = Lists.newArrayList();
       boolean authEnabled = conf.getBoolean(SPARK_AUTHENTICATE_KEY, DEFAULT_SPARK_AUTHENTICATE);
       if (authEnabled) {
@@ -192,6 +201,11 @@ public class YarnShuffleService extends AuxiliaryService {
 
       int port = conf.getInt(
         SPARK_SHUFFLE_SERVICE_PORT_KEY, DEFAULT_SPARK_SHUFFLE_SERVICE_PORT);
+      // 创建 TransportServer TransportClientFactory 以及基于 TransportChannelHandler 创建
+      // Netty Channel pipelines
+      // TransportClient 提供了两种协议，一种基于控制层面的RPCs(control-plane RPC) 和
+      // 一种基于数据层面的 "chunk fetching"。
+      // RPC的处理是在TransportContext的范围之外执行的，它负责设置流，这些流可以使用零拷贝IO分块传输
       transportContext = new TransportContext(transportConf, blockHandler, true);
       shuffleServer = transportContext.createServer(port, bootstraps);
       // the port should normally be fixed, but for tests its useful to find an open port

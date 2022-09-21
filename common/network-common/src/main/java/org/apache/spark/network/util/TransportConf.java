@@ -334,6 +334,22 @@ public class TransportConf {
    * is 2 * #cores ignoring io.serverThreads. The percentage here is configured via
    * spark.shuffle.server.chunkFetchHandlerThreadsPercent. The returned value is rounded off to
    * ceiling of the nearest integer.
+   *
+   * io的百分比。netty用于处理ChunkFetchRequest的serverThreads.
+   *
+   * 当`spark.shuffle.server.chunkFetchHandlerThreadsPercent`已设置，则shuffle服务器将使用单独的
+   * EventLoopGroup来处理ChunkFechRequest消息。
+   *
+   * 尽管在底层 channel 上调用异步 writeAndFlush 将响应发送回客户端，channel 上的I/O仍由 TransportServer
+   * 在 channel 中注册的默认 EventLoopGroup 处理，方法是在 ChunkFetchRequest 处理程序线程内等待完成发送回响应。
+   *
+   * 我们可以限制TransportServer默认EventLoopGroup中写入ChunkFetchRequest响应所消耗的线程的最大数量，由于磁盘争用，
+   * 这是I/O密集型的，可能需要很长时间才能处理。通过配置稍高数量的shuffle服务器线程，我们可以保留一些线程用于处理其他RPC消息，
+   * 从而使客户端在向shuffler服务器发送RPC消息时不太可能出现超时。
+   *
+   * 用于处理chunked fetch requests的线程数是io serverThreads（如果已定义）的百分比，否则是2*core的百分比。
+   * 但是，百分比0表示netty默认线程数，2*core。
+   * 此处的百分比是通过spark.shuffle.server.chunkFetchHandlerThreadsPercent配置的。返回的值四舍五入到最接近的整数的上限。
    */
   public int chunkFetchHandlerThreads() {
     if (!this.getModuleName().equalsIgnoreCase("shuffle")) {
@@ -349,6 +365,9 @@ public class TransportConf {
   /**
    * Whether to use a separate EventLoopGroup to process ChunkFetchRequest messages, it is decided
    * by the config `spark.shuffle.server.chunkFetchHandlerThreadsPercent` is set or not.
+   *
+   * 是否使用单独的 EventLoopGroup 处理 ChunkFetchRequest 消息，
+   * 由spark.shuffle.server.chunkFetchHandlerThreadsPercent决定。
    */
   public boolean separateChunkFetchRequest() {
     return conf.getInt("spark.shuffle.server.chunkFetchHandlerThreadsPercent", 0) > 0;
