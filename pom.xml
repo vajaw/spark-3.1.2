@@ -260,6 +260,10 @@
     <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss z</maven.build.timestamp.format>
   </properties>
   <repositories>
+	<repository>
+	   <id>cloudera</id>
+	   <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+	</repository>
     <repository>
       <id>gcs-maven-central-mirror</id>
       <!--

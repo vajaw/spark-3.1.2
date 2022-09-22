@@ -214,6 +214,7 @@ public class YarnShuffleService extends AuxiliaryService {
       logger.info("Started YARN shuffle service for Spark on port {}. " +
         "Authentication is {}.  Registered executor file is {}", port, authEnabledString,
         registeredExecutorFile);
+      logger.info(" SparkYarnShuffleService TransportConf is " + transportConf.toString());
     } catch (Exception e) {
       if (stopOnFailure) {
         throw e;
