@@ -180,7 +180,7 @@ public class YarnShuffleService extends AuxiliaryService {
       MergedShuffleFileManager shuffleMergeManager = newMergedShuffleFileManagerInstance(
         transportConf);
 
-      // 一个RPC服务，可以同时服务 RDD block 以及 Executor 外部的 shuffle block
+      // 一个RPC服务，可以同时服务 RDD block 以及 Executor 外部的 shuffle block。
       // 处理注册Executor 处理打开shuffle block 或者 RDD 持久在磁盘的 block
       // 这些块被"one-for-one" 策略注册，意味着每个传输层(Transport-layer)Chunk 相当于一个block
       blockHandler = new ExternalBlockHandler(

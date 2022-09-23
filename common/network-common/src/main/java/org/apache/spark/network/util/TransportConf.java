@@ -112,6 +112,13 @@ public class TransportConf {
    * Requested maximum length of the queue of incoming connections. If  &lt; 1,
    * the default Netty value of {@link io.netty.util.NetUtil#SOMAXCONN} will be used.
    * Default to -1.
+   *
+   * 请求的传入连接队列的最大长度。如果&lt；1，将使用默认的Netty值{@link.Netty.util.NetUtil#SOMAXCONN}。
+   * *默认为-1。
+   * 从link.Netty.util.NetUtil 第 764行代码可以看到 linux 服务器默认128
+   *         SOMAXCONN = (Integer)AccessController.doPrivileged(new PrivilegedAction<Integer>() {
+   *             public Integer run() {
+   *                 int somaxconn = PlatformDependent.isWindows() ? 200 : 128;
    */
   public int backLog() { return conf.getInt(SPARK_NETWORK_IO_BACKLOG_KEY, -1); }
 
@@ -127,6 +134,10 @@ public class TransportConf {
    *  latency * network_bandwidth.
    * Assuming latency = 1ms, network_bandwidth = 10Gbps
    *  buffer size should be ~ 1.25MB
+   *
+   *  接收缓冲区大小（SO_RCVBUF）。
+   *  注意：接收缓冲区 和 发送缓冲区的最佳大小应为 延迟*网络带宽。假设延迟=1ms，带宽=10Gbps
+   *  缓冲区大小应为 1.25MB
    */
   public int receiveBuf() { return conf.getInt(SPARK_NETWORK_IO_RECEIVEBUFFER_KEY, -1); }
 
@@ -166,6 +177,8 @@ public class TransportConf {
   /**
    * Whether to initialize FileDescriptor lazily or not. If true, file descriptors are
    * created only when data is going to be transferred. This can reduce the number of open files.
+   *
+   * 是否延迟初始化FileDescriptor。如果为true，则仅在要传输数据时创建文件描述符。这可以减少打开文件的数量。
    */
   public boolean lazyFileDescriptor() {
     return conf.getBoolean(SPARK_NETWORK_IO_LAZYFD_KEY, true);
@@ -174,6 +187,8 @@ public class TransportConf {
   /**
    * Whether to track Netty memory detailed metrics. If true, the detailed metrics of Netty
    * PoolByteBufAllocator will be gotten, otherwise only general memory usage will be tracked.
+   *
+   * 是否跟踪Netty内存详细指标。如果为true，将获取Netty PoolByteBufAllocator的详细指标，否则将只跟踪一般内存使用情况。
    */
   public boolean verboseMetrics() {
     return conf.getBoolean(SPARK_NETWORK_VERBOSE_METRICS, false);
@@ -182,6 +197,8 @@ public class TransportConf {
   /**
    * Whether to enable TCP keep-alive. If true, the TCP keep-alives are enabled, which removes
    * connections that are idle for too long.
+   *
+   * 是否启用TCP keep-alive。如果为true，则启用TCP keep-alives，这将删除空闲时间过长的连接。
    */
   public boolean enableTcpKeepAlive() {
     return conf.getBoolean(SPARK_NETWORK_IO_ENABLETCPKEEPALIVE_KEY, false);
@@ -284,6 +301,9 @@ public class TransportConf {
    * channels. If enabled then only two pooled ByteBuf allocators are created: one where caching
    * is allowed (for transport servers) and one where not (for transport clients).
    * When disabled a new allocator is created for each transport servers and clients.
+   *
+   * 指示是否在不同Netty channels 之间共享池ByteBuf分配器的标志。如果启用，则只创建两个池化ByteBuf分配器：一个允许缓存（for transport servers），
+   * 另一个不允许缓存（for transport clients）。禁用时，将为每个transport servers、transport clients创建一个新的分配器。
    */
   public boolean sharedByteBufAllocators() {
     return conf.getBoolean("spark.network.sharedByteBufAllocators.enabled", true);
@@ -291,6 +311,7 @@ public class TransportConf {
 
   /**
   * If enabled then off-heap byte buffers will be preferred for the shared ByteBuf allocators.
+  * 如果启用，则共享ByteBuf分配器将首选堆外byte buffers。
   */
   public boolean preferDirectBufsForSharedByteBufAllocators() {
     return conf.getBoolean("spark.network.io.preferDirectBufs", true);
@@ -309,6 +330,9 @@ public class TransportConf {
    * retry according to the shuffle retry configs (see `spark.shuffle.io.maxRetries` and
    * `spark.shuffle.io.retryWait`), if those limits are reached the task will fail with fetch
    * failure.
+   *
+   * shuffle服务上允许同时传输的最大块数。请注意，当达到最大值时，新的传入连接将关闭。客户端将根据shuffle重试配置进行重试
+   * （请参阅`spark.shuffle.io.maxRetries`和`spark.suffle.io.retryWait`），如果达到这些限制，任务将失败，伴随着fetch failure。
    */
   public long maxChunksBeingTransferred() {
     return conf.getLong("spark.shuffle.maxChunksBeingTransferred", Long.MAX_VALUE);

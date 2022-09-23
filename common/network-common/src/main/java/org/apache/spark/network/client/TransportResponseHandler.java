@@ -72,6 +72,7 @@ public class TransportResponseHandler extends MessageHandler<ResponseMessage> {
     this.timeOfLastRequestNs = new AtomicLong(0);
   }
 
+  // 添加一个Fetch请求的回调 ？？何时调用？？
   public void addFetchRequest(StreamChunkId streamChunkId, ChunkReceivedCallback callback) {
     updateTimeOfLastRequest();
     outstandingFetches.put(streamChunkId, callback);
@@ -81,6 +82,7 @@ public class TransportResponseHandler extends MessageHandler<ResponseMessage> {
     outstandingFetches.remove(streamChunkId);
   }
 
+  // 添加一个RPC请求的回调？？ 何时调用
   public void addRpcRequest(long requestId, RpcResponseCallback callback) {
     updateTimeOfLastRequest();
     outstandingRpcs.put(requestId, callback);
@@ -90,6 +92,7 @@ public class TransportResponseHandler extends MessageHandler<ResponseMessage> {
     outstandingRpcs.remove(requestId);
   }
 
+  // 添加一个Stream 请求的回调？？ 何时调用
   public void addStreamCallback(String streamId, StreamCallback callback) {
     updateTimeOfLastRequest();
     streamCallbacks.offer(ImmutablePair.of(streamId, callback));
@@ -137,8 +140,11 @@ public class TransportResponseHandler extends MessageHandler<ResponseMessage> {
   public void channelActive() {
   }
 
+  // 一、日志定位的两条思路
+  // 1、何时会调用此方法
   @Override
   public void channelInactive() {
+    // 2、为什么未完成的请求会大于0
     if (numOutstandingRequests() > 0) {
       String remoteAddress = getRemoteAddress(channel);
       logger.error("Still have {} requests outstanding when connection from {} is closed",
