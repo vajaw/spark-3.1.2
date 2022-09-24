@@ -168,6 +168,7 @@ public class RetryingBlockFetcher {
   /**
    * Lightweight method which initiates a retry in a different thread. The retry will involve
    * calling fetchAllOutstanding() after a configured wait time.
+   * 在不同线程中启动重试。在配置等待时间后调用fetchAllOutstanding()
    */
   private synchronized void initiateRetry() {
     retryCount += 1;

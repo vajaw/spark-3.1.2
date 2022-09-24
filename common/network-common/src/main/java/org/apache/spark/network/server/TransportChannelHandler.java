@@ -50,6 +50,21 @@ import static org.apache.spark.network.util.NettyUtils.getRemoteAddress;
  * on the channel for at least `requestTimeoutMs`. Note that this is duplex traffic; we will not
  * timeout if the client is continuously sending but getting no responses, for simplicity.
  */
+
+// 单个 Transport-level Channel handler，用于将请求授权给 TransportRequestHandler
+//                                         将响应授权给 TransportResponseHandler
+
+// 在传输层中创建的所有Channel都是双向的。当客户端使用RequestMessage启动Netty Channel时（由服务器的RequesntHadler处理），
+// 服务器将生成ResponseMessage（由客户端的Response Handler进行处理）。 然而，服务器也在同一通道上获得一个句柄，
+// 因此它可能会开始向Client发送RequestMessages。
+// 针对client对服务器请求的响应，这意味着client也需要一个RequestHandler，Server也需要一个ResponseHandler。
+
+// TransportChannelHandler还处理来自{@link-io.netty.handler.timeout.IdleStateHandler}的timeouts。
+// 如果存在 outstanding 的fetch或RPC请求，但通道在“requestTimeoutMs”所配置的延迟时间内没有流量，则认为连接超时。
+// 请注意，这是双向通讯的流量；为了简单起见，如果客户端持续发送但没有收到响应，我们不会超时。
+
+// 原理上，也就是说客户端和服务端之间没有通讯，但是还建立了一个channal，才会超时。
+// 那什么情况下服务端和客户端才没有通讯？？？？？
 public class TransportChannelHandler extends SimpleChannelInboundHandler<Message> {
   private static final Logger logger = LoggerFactory.getLogger(TransportChannelHandler.class);
 
@@ -124,6 +139,8 @@ public class TransportChannelHandler extends SimpleChannelInboundHandler<Message
   /**
    * Overwrite acceptInboundMessage to properly delegate ChunkFetchRequest messages
    * to ChunkFetchRequestHandler.
+   *
+   * 覆盖acceptInboundMessage以将ChunkFetchRequest消息正确委托给ChunkFetchRequestHandler。
    */
   @Override
   public boolean acceptInboundMessage(Object msg) throws Exception {
@@ -145,6 +162,7 @@ public class TransportChannelHandler extends SimpleChannelInboundHandler<Message
     }
   }
 
+  /**基于{@link io.netty.handler.timeout.IdleStateHandler}中的事件触发*/
   /** Triggered based on events from an {@link io.netty.handler.timeout.IdleStateHandler}. */
   @Override
   public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
@@ -158,11 +176,17 @@ public class TransportChannelHandler extends SimpleChannelInboundHandler<Message
       // To avoid a race between TransportClientFactory.createClient() and this code which could
       // result in an inactive client being returned, this needs to run in a synchronized block.
       synchronized (this) {
+        // 是否有未完成的线程
         boolean hasInFlightRequests = responseHandler.numOutstandingRequests() > 0;
         boolean isActuallyOverdue =
           System.nanoTime() - responseHandler.getTimeOfLastRequestNs() > requestTimeoutNs;
+
+        // IdleState.ALL_IDLE 有一段时间没有收到或发送数据
+        // 并且客户端客户端的等待时间超过了配置的 spark.shuffle.io.connectionTimeout
         if (e.state() == IdleState.ALL_IDLE && isActuallyOverdue) {
           if (hasInFlightRequests) {
+            // 如果线程长时间没有收发数据，并且客户端的等待时间时间超过了getOrDefault(spark.network.timeout,
+            // spark.shuffle.io.connectionTimeout) 所设置的时间将
             String address = getRemoteAddress(ctx.channel());
             logger.error("Connection to {} has been quiet for {} ms while there are outstanding " +
               "requests. Assuming connection is dead; please adjust spark.network.timeout if " +

@@ -539,6 +539,7 @@ private[spark] class BlockManager(
 
     for (i <- 1 to MAX_ATTEMPTS) {
       try {
+        // 同步，如果无法连接，将引发异常。
         // Synchronous and will throw an exception if we cannot connect.
         blockStoreClient.asInstanceOf[ExternalBlockStoreClient].registerWithShuffleServer(
           shuffleServerId.host, shuffleServerId.port, shuffleServerId.executorId, shuffleConfig)

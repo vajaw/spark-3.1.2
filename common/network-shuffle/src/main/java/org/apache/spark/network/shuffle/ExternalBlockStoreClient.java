@@ -69,6 +69,7 @@ public class ExternalBlockStoreClient extends BlockStoreClient {
   }
 
   /**
+   * 初始化BlockStoreClient，指定此Executor的appId。
    * Initializes the BlockStoreClient, specifying this Executor's appId.
    * Must be called before any other method on the BlockStoreClient.
    */

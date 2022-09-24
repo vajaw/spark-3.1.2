@@ -37,6 +37,8 @@ import org.apache.spark.network.util.TransportFrameDecoder;
 import static org.apache.spark.network.util.NettyUtils.getRemoteAddress;
 
 /**
+ * 一个处理程序，处理来自客户端的请求并将区块数据写回。每个处理程序都连接到单个Netty channel，并跟踪通过此channel获取的streams，
+ * 以便在channel终止时进行清理（请参阅#channelUnregistered）。
  * A handler that processes requests from clients and writes chunk data back. Each handler is
  * attached to a single Netty channel, and keeps track of which streams have been fetched via this
  * channel, in order to clean them up if the channel is terminated (see #channelUnregistered).
@@ -59,9 +61,11 @@ public class TransportRequestHandler extends MessageHandler<RequestMessage> {
   /** Returns each chunk part of a stream. */
   private final StreamManager streamManager;
 
+  // 正在传输且尚未完成的最大块数
   /** The max number of chunks being transferred and not finished yet. */
   private final long maxChunksBeingTransferred;
 
+  // ChunkFetchRequest消息的专用通道处理程序
   /** The dedicated ChannelHandler for ChunkFetchRequest messages. */
   private final ChunkFetchRequestHandler chunkFetchRequestHandler;
 

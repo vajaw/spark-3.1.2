@@ -37,6 +37,11 @@ import org.apache.spark.network.protocol.Encodable;
 
 import static org.apache.spark.network.util.NettyUtils.*;
 
+// 用于处理ChunkFetchRequest消息的专用ChannelHandler。当向客户端发送ChunkFetchRequest消息的响应时，
+// 由于磁盘争用，在底层通道上执行I/O的线程可能会被阻止。如果数百个客户端同时向服务器发送ChunkFetchRequest，
+// 它可能会占用TransportServer默认EventLoopGroup中的所有线程，等待磁盘读取，然后才能将块数据作为ChunkFetchSuccess
+// 消息的一部分发送回客户端。因此，它将不会留下线程来处理其他RPC消息，这会减少处理时间，并可能导致客户端在执行SASL身份验证
+// 、注册执行器或等待OpenBlocks消息的响应时超时。
 /**
  * A dedicated ChannelHandler for processing ChunkFetchRequest messages. When sending response
  * of ChunkFetchRequest messages to the clients, the thread performing the I/O on the underlying

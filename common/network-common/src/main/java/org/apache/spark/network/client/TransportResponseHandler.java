@@ -43,6 +43,8 @@ import org.apache.spark.network.server.MessageHandler;
 import static org.apache.spark.network.util.NettyUtils.getRemoteAddress;
 import org.apache.spark.network.util.TransportFrameDecoder;
 
+//*处理服务器响应，以响应[[TransportClient]]发出的请求的处理程序。它通过跟踪未完成的请求（及其回调）列表来工作。
+//*并发：线程安全，可以从多个线程调用。
 /**
  * Handler that processes server responses, in response to requests issued from a
  * [[TransportClient]]. It works by tracking the list of outstanding requests (and their callbacks).
@@ -62,6 +64,7 @@ public class TransportResponseHandler extends MessageHandler<ResponseMessage> {
   private volatile boolean streamActive;
 
   /** Records the time (in system nanoseconds) that the last fetch or RPC request was sent. */
+  // 记录上次发送fetch或RPC请求的时间（以系统纳秒为单位）
   private final AtomicLong timeOfLastRequestNs;
 
   public TransportResponseHandler(Channel channel) {
@@ -143,7 +146,7 @@ public class TransportResponseHandler extends MessageHandler<ResponseMessage> {
   // 一、日志定位的两条思路
   // 1、何时会调用此方法
   @Override
-  public void channelInactive() {
+  public void channelInactive()  {
     // 2、为什么未完成的请求会大于0
     if (numOutstandingRequests() > 0) {
       String remoteAddress = getRemoteAddress(channel);
@@ -173,7 +176,8 @@ public class TransportResponseHandler extends MessageHandler<ResponseMessage> {
           resp.streamChunkId, getRemoteAddress(channel));
         resp.body().release();
       } else {
-        outstandingFetches.remove(resp.streamChunkId);
+        outstandingFetches.remove(resp.streamChunkId); // 无论服务器响应streamChunk成功还是失败，
+                                                        // 都会从streamChunk这个map中移除该streamChunkId
         listener.onSuccess(resp.streamChunkId.chunkIndex, resp.body());
         resp.body().release();
       }
@@ -184,7 +188,8 @@ public class TransportResponseHandler extends MessageHandler<ResponseMessage> {
         logger.warn("Ignoring response for block {} from {} ({}) since it is not outstanding",
           resp.streamChunkId, getRemoteAddress(channel), resp.errorString);
       } else {
-        outstandingFetches.remove(resp.streamChunkId);
+        outstandingFetches.remove(resp.streamChunkId); // 无论服务器响应streamChunk成功还是失败，
+                                                        // 都会从streamChunk这个map中移除该streamChunkId
         listener.onFailure(resp.streamChunkId.chunkIndex, new ChunkFetchFailureException(
           "Failure while fetching " + resp.streamChunkId + ": " + resp.errorString));
       }
@@ -196,7 +201,8 @@ public class TransportResponseHandler extends MessageHandler<ResponseMessage> {
           resp.requestId, getRemoteAddress(channel), resp.body().size());
         resp.body().release();
       } else {
-        outstandingRpcs.remove(resp.requestId);
+        outstandingRpcs.remove(resp.requestId); // 无论服务器响应RPC成功还是失败，
+                                                  // 都会从outstandingRpcs这个map中移除该requestId
         try {
           listener.onSuccess(resp.body().nioByteBuffer());
         } finally {
@@ -210,12 +216,13 @@ public class TransportResponseHandler extends MessageHandler<ResponseMessage> {
         logger.warn("Ignoring response for RPC {} from {} ({}) since it is not outstanding",
           resp.requestId, getRemoteAddress(channel), resp.errorString);
       } else {
-        outstandingRpcs.remove(resp.requestId);
+        outstandingRpcs.remove(resp.requestId); // 无论服务器响应RPC成功还是失败，
+                                                  // 都会从outstandingRpcs这个map中移除该requestId
         listener.onFailure(new RuntimeException(resp.errorString));
       }
     } else if (message instanceof StreamResponse) {
       StreamResponse resp = (StreamResponse) message;
-      Pair<String, StreamCallback> entry = streamCallbacks.poll();
+      Pair<String, StreamCallback> entry = streamCallbacks.poll(); //queue.poll() 检索但不移除此队列的头
       if (entry != null) {
         StreamCallback callback = entry.getValue();
         if (resp.byteCount > 0) {
@@ -258,6 +265,8 @@ public class TransportResponseHandler extends MessageHandler<ResponseMessage> {
     }
   }
 
+  // 未完成的请求数，站在客户端的角度来看，服务端有两种情况，第一种情况：服务端返回响应，并发送了执行成功
+  // 或者执行失败的消息，另一种情况服务端还没有完成，完成后才返回响应。
   /** Returns total number of outstanding requests (fetch requests + rpcs) */
   public int numOutstandingRequests() {
     return outstandingFetches.size() + outstandingRpcs.size() + streamCallbacks.size() +
@@ -269,6 +278,7 @@ public class TransportResponseHandler extends MessageHandler<ResponseMessage> {
     return timeOfLastRequestNs.get();
   }
 
+  // 客户端最后一次发送请求的时间设置为当前时间。
   /** Updates the time of the last request to the current system time. */
   public void updateTimeOfLastRequest() {
     timeOfLastRequestNs.set(System.nanoTime());

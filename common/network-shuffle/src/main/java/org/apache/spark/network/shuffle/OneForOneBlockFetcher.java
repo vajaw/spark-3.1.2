@@ -198,6 +198,9 @@ public class OneForOneBlockFetcher {
     }
   }
 
+  // 开始fetch，在fetch每个块时调用listener。
+  // 消息将使用Java serializer进行序列化，并且RPC必须返回{@link StreamHandle}。
+  // 我们将立即发送所有提取请求，而不进行限制。
   /**
    * Begins the fetching process, calling the listener with every block fetched.
    * The given message will be serialized with the Java serializer, and the RPC must return a
@@ -211,6 +214,8 @@ public class OneForOneBlockFetcher {
           streamHandle = (StreamHandle) BlockTransferMessage.Decoder.fromByteBuffer(response);
           logger.trace("Successfully opened blocks {}, preparing to fetch chunks.", streamHandle);
 
+          // 立即请求所有块——由于[[ShuffleBlockFetcherIterator]]中的块级别较高，我们希望请求的总大小是合理的。
+
           // Immediately request all chunks -- we expect that the total size of the request is
           // reasonable due to higher level chunking in [[ShuffleBlockFetcherIterator]].
           for (int i = 0; i < streamHandle.numChunks; i++) {
@@ -223,10 +228,11 @@ public class OneForOneBlockFetcher {
           }
         } catch (Exception e) {
           logger.error("Failed while starting block fetches after success", e);
+          // 当服务器响应拉取成功，但是客户端处理出现异常需要重新从服务端对失败的块进行处理
           failRemainingBlocks(blockIds, e);
         }
       }
-
+      // 当服务器响应块拉取失败，但是客户端处理出现异常需要重新从服务端对失败的块进行处理
       @Override
       public void onFailure(Throwable e) {
         logger.error("Failed while starting block fetches", e);
@@ -235,6 +241,7 @@ public class OneForOneBlockFetcher {
     });
   }
 
+  // 通过 listener 列出每个回调 onBlockFetchFailure 的 block id
   /** Invokes the "onBlockFetchFailure" callback for every listed block id. */
   private void failRemainingBlocks(String[] failedBlockIds, Throwable e) {
     for (String blockId : failedBlockIds) {
