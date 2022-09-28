@@ -19,6 +19,7 @@ package org.apache.spark.network.server;
 
 import io.netty.channel.Channel;
 
+// 客户端连接到服务器后，在TransportServer的客户端通道上执行的引导。这允许自定义客户端通道，以允许SASL身份验证等操作。
 /**
  * A bootstrap which is executed on a TransportServer's client channel once a client connects
  * to the server. This allows customizing the client channel to allow for things such as SASL

@@ -50,13 +50,16 @@ public class OneForOneStreamManager extends StreamManager {
     final Iterator<ManagedBuffer> buffers;
 
     // The channel associated to the stream
+    // 与流关联的通道
     final Channel associatedChannel;
 
     // Used to keep track of the index of the buffer that the user has retrieved, just to ensure
     // that the caller only requests each chunk one at a time, in order.
+    // 用于跟踪用户检索的缓冲区索引，只是为了确保调用者一次只按顺序请求一个块。
     int curChunk = 0;
 
     // Used to keep track of the number of chunks being transferred and not finished yet.
+    // 用于跟踪正在传输且尚未完成的块的数量。
     final AtomicLong chunksBeingTransferred = new AtomicLong(0L);
 
     StreamState(String appId, Iterator<ManagedBuffer> buffers, Channel channel) {

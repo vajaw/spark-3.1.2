@@ -66,6 +66,7 @@ import org.apache.spark.util.{CompletionIterator, TaskCompletionListener, Utils}
  * @param doBatchFetch fetch continuous shuffle blocks from same executor in batch if the server
  *                     side supports.
  */
+//noinspection ScalaStyle
 private[spark]
 final class ShuffleBlockFetcherIterator(
     context: TaskContext,
@@ -237,10 +238,9 @@ final class ShuffleBlockFetcherIterator(
   private[this] def sendRequest(req: FetchRequest): Unit = {
     logDebug("Sending request for %d blocks (%s) from %s".format(
       req.blocks.size, Utils.bytesToString(req.size), req.address.hostPort))
+    // 在发送请求前记录每个请求块的大小、请求次数
     bytesInFlight += req.size
     reqsInFlight += 1
-
-    // so we can look up the block info of each blockID
     val infoMap = req.blocks.map {
       case FetchBlockInfo(blockId, size, mapIndex) => (blockId.toString, (size, mapIndex))
     }.toMap
@@ -248,6 +248,7 @@ final class ShuffleBlockFetcherIterator(
     val blockIds = req.blocks.map(_.blockId.toString)
     val address = req.address
 
+    // 启用块拉取监听器当请求返回成功，将返回的块数据存储到results中
     val blockFetchingListener = new BlockFetchingListener {
       override def onBlockFetchSuccess(blockId: String, buf: ManagedBuffer): Unit = {
         // Only add the buffer to results queue if the iterator is not zombie,
@@ -564,7 +565,6 @@ final class ShuffleBlockFetcherIterator(
   }
 
   override def hasNext: Boolean = numBlocksProcessed < numBlocksToFetch
-
   /**
    * Fetches the next (BlockId, InputStream). If a task fails, the ManagedBuffers
    * underlying each InputStream will be freed by the cleanup() method registered with the
@@ -704,6 +704,8 @@ final class ShuffleBlockFetcherIterator(
     CompletionIterator[(BlockId, InputStream), this.type](this,
       onCompleteCallback.onComplete(context))
   }
+  // 发送最多maxBytesInFlight的提取请求。如果无法立即从远程主机fetch数据，请将fetch请求推迟到下次可以处理该请求时。
+  // 如果可能，处理任何未完成的延迟提取请求。
 
   private def fetchUpToMaxBytes(): Unit = {
     // Send fetch requests up to maxBytesInFlight. If you cannot fetch from a remote host

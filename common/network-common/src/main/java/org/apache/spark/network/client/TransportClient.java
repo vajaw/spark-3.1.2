@@ -130,14 +130,7 @@ public class TransportClient implements Closeable {
    * @param chunkIndex 0-based index of the chunk to fetch
    * @param callback Callback invoked upon successful receipt of chunk, or upon any failure.
    */
-  public void fetchChunk(
-      long streamId,
-      int chunkIndex,
-      ChunkReceivedCallback callback) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("Sending fetch chunk request {} to {}", chunkIndex, getRemoteAddress(channel));
-    }
-
+  public void fetchChunk(long streamId, int chunkIndex, ChunkReceivedCallback callback) {
     StreamChunkId streamChunkId = new StreamChunkId(streamId, chunkIndex);
     StdChannelListener listener = new StdChannelListener(streamChunkId) {
       @Override
@@ -147,9 +140,25 @@ public class TransportClient implements Closeable {
       }
     };
     handler.addFetchRequest(streamChunkId, callback);
-
     channel.writeAndFlush(new ChunkFetchRequest(streamChunkId)).addListener(listener);
   }
+  /**
+   * Sends an opaque message to the RpcHandler on the server-side. The callback will be invoked
+   * with the server's response or upon any failure.
+   *
+   * @param message The message to send.
+   * @param callback Callback to handle the RPC's reply.
+   * @return The RPC's id.
+   */
+  public long sendRpc(ByteBuffer message, RpcResponseCallback callback) {
+    long requestId = requestId();
+    handler.addRpcRequest(requestId, callback);
+    RpcChannelListener listener = new RpcChannelListener(requestId, callback);
+    channel.writeAndFlush(new RpcRequest(requestId, new NioManagedBuffer(message)))
+            .addListener(listener);
+    return requestId;
+  }
+
 
   /**
    * Request to stream the data with the given stream ID from the remote end.
@@ -164,9 +173,6 @@ public class TransportClient implements Closeable {
         callback.onFailure(streamId, new IOException(errorMsg, cause));
       }
     };
-    if (logger.isDebugEnabled()) {
-      logger.debug("Sending stream request for {} to {}", streamId, getRemoteAddress(channel));
-    }
 
     // Need to synchronize here so that the callback is added to the queue and the RPC is
     // written to the socket atomically, so that callbacks are called in the right order
@@ -175,29 +181,6 @@ public class TransportClient implements Closeable {
       handler.addStreamCallback(streamId, callback);
       channel.writeAndFlush(new StreamRequest(streamId)).addListener(listener);
     }
-  }
-
-  /**
-   * Sends an opaque message to the RpcHandler on the server-side. The callback will be invoked
-   * with the server's response or upon any failure.
-   *
-   * @param message The message to send.
-   * @param callback Callback to handle the RPC's reply.
-   * @return The RPC's id.
-   */
-  public long sendRpc(ByteBuffer message, RpcResponseCallback callback) {
-    if (logger.isTraceEnabled()) {
-      logger.trace("Sending RPC to {}", getRemoteAddress(channel));
-    }
-
-    long requestId = requestId();
-    handler.addRpcRequest(requestId, callback);
-
-    RpcChannelListener listener = new RpcChannelListener(requestId, callback);
-    channel.writeAndFlush(new RpcRequest(requestId, new NioManagedBuffer(message)))
-      .addListener(listener);
-
-    return requestId;
   }
 
   /**
