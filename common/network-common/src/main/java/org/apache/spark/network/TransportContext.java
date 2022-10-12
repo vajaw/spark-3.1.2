@@ -121,6 +121,11 @@ public class TransportContext implements Closeable {
     this.rpcHandler = rpcHandler;
     this.closeIdleConnections = closeIdleConnections;
 
+    logger.info("conf.getModuleName() = " + conf.getModuleName());
+    logger.info("conf.getModuleName().equalsIgnoreCase(shuffle) = " + conf.getModuleName().equalsIgnoreCase("shuffle"));
+    logger.info("isClientOnly = " + isClientOnly);
+    logger.info("conf.separateChunkFetchRequest() = " + conf.separateChunkFetchRequest());
+
     if (conf.getModuleName() != null &&
         conf.getModuleName().equalsIgnoreCase("shuffle") &&
         !isClientOnly && conf.separateChunkFetchRequest()) {
@@ -197,7 +202,11 @@ public class TransportContext implements Closeable {
         // would require more logic to guarantee if this were not part of the same event loop.
         .addLast("handler", channelHandler);
       // Use a separate EventLoopGroup to handle ChunkFetchRequest messages for shuffle rpcs.
+      logger.error("chunkFetchWorkers != null" + (chunkFetchWorkers != null));
+      logger.info("chunkFetchWorkers != null" + (chunkFetchWorkers != null));
       if (chunkFetchWorkers != null) {
+        logger.info("===============chunkFetchWorkers 初始化完成===========");
+        logger.error("===============chunkFetchWorkers 初始化完成===========");
         ChunkFetchRequestHandler chunkFetchHandler = new ChunkFetchRequestHandler(
           channelHandler.getClient(), rpcHandler.getStreamManager(),
           conf.maxChunksBeingTransferred(), true /* syncModeEnabled */);

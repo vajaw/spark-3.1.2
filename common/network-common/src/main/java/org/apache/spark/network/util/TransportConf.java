@@ -409,44 +409,44 @@ public class TransportConf {
     return conf.getInt("spark.shuffle.server.ioExceptionsThresholdDuringMerge", 4);
   }
 
-  // @Override
-  // public String toString() {
-  //   return this.SPARK_NETWORK_IO_MODE_KEY + "=>" + this.ioMode() + "\n"
-  //           + this.SPARK_NETWORK_IO_PREFERDIRECTBUFS_KEY + "=>" + this.preferDirectBufs() + "\n"
-  //           + this.SPARK_NETWORK_IO_CONNECTIONTIMEOUT_KEY + "=>" + this.connectionTimeoutMs() + "\n"
-  //           + this.SPARK_NETWORK_IO_BACKLOG_KEY + "=>" + this.backLog() + "\n"
-  //           + this.SPARK_NETWORK_IO_NUMCONNECTIONSPERPEER_KEY + "=>" + this.numConnectionsPerPeer() + "\n"
-  //           + this.SPARK_NETWORK_IO_SERVERTHREADS_KEY + "=>" + this.serverThreads() + "\n"
-  //           + this.SPARK_NETWORK_IO_CLIENTTHREADS_KEY + "=>" + this.clientThreads() + "\n"
-  //           + this.SPARK_NETWORK_IO_RECEIVEBUFFER_KEY + "=>" + this.receiveBuf() + "\n"
-  //           + this.SPARK_NETWORK_IO_SENDBUFFER_KEY + "=>" + this.sendBuf() + "\n"
-  //           + this.SPARK_NETWORK_SASL_TIMEOUT_KEY + "=>" + this.authRTTimeoutMs() + "\n"
-  //           + this.SPARK_NETWORK_IO_MAXRETRIES_KEY + "=>" + this.maxIORetries() + "\n"
-  //           + this.SPARK_NETWORK_IO_RETRYWAIT_KEY + "=>" + this.ioRetryWaitTimeMs() + "\n"
-  //           + this.SPARK_NETWORK_IO_LAZYFD_KEY + "=>" + this.lazyFileDescriptor() + "\n"
-  //           + this.SPARK_NETWORK_VERBOSE_METRICS + "=>" + this.verboseMetrics() + "\n"
-  //           + this.SPARK_NETWORK_IO_ENABLETCPKEEPALIVE_KEY + "=>" + this.enableTcpKeepAlive() + "\n";
-  // }
   @Override
   public String toString() {
-    return "TransportConf{" +
-            "SPARK_NETWORK_IO_MODE_KEY='" + SPARK_NETWORK_IO_MODE_KEY + '\'' +
-            ", SPARK_NETWORK_IO_PREFERDIRECTBUFS_KEY='" + SPARK_NETWORK_IO_PREFERDIRECTBUFS_KEY + '\'' +
-            ", SPARK_NETWORK_IO_CONNECTIONTIMEOUT_KEY='" + SPARK_NETWORK_IO_CONNECTIONTIMEOUT_KEY + '\'' +
-            ", SPARK_NETWORK_IO_BACKLOG_KEY='" + SPARK_NETWORK_IO_BACKLOG_KEY + '\'' +
-            ", SPARK_NETWORK_IO_NUMCONNECTIONSPERPEER_KEY='" + SPARK_NETWORK_IO_NUMCONNECTIONSPERPEER_KEY + '\'' +
-            ", SPARK_NETWORK_IO_SERVERTHREADS_KEY='" + SPARK_NETWORK_IO_SERVERTHREADS_KEY + '\'' +
-            ", SPARK_NETWORK_IO_CLIENTTHREADS_KEY='" + SPARK_NETWORK_IO_CLIENTTHREADS_KEY + '\'' +
-            ", SPARK_NETWORK_IO_RECEIVEBUFFER_KEY='" + SPARK_NETWORK_IO_RECEIVEBUFFER_KEY + '\'' +
-            ", SPARK_NETWORK_IO_SENDBUFFER_KEY='" + SPARK_NETWORK_IO_SENDBUFFER_KEY + '\'' +
-            ", SPARK_NETWORK_SASL_TIMEOUT_KEY='" + SPARK_NETWORK_SASL_TIMEOUT_KEY + '\'' +
-            ", SPARK_NETWORK_IO_MAXRETRIES_KEY='" + SPARK_NETWORK_IO_MAXRETRIES_KEY + '\'' +
-            ", SPARK_NETWORK_IO_RETRYWAIT_KEY='" + SPARK_NETWORK_IO_RETRYWAIT_KEY + '\'' +
-            ", SPARK_NETWORK_IO_LAZYFD_KEY='" + SPARK_NETWORK_IO_LAZYFD_KEY + '\'' +
-            ", SPARK_NETWORK_VERBOSE_METRICS='" + SPARK_NETWORK_VERBOSE_METRICS + '\'' +
-            ", SPARK_NETWORK_IO_ENABLETCPKEEPALIVE_KEY='" + SPARK_NETWORK_IO_ENABLETCPKEEPALIVE_KEY + '\'' +
-            ", conf=" + conf +
-            ", module='" + module + '\'' +
-            '}';
+    return this.SPARK_NETWORK_IO_MODE_KEY + "=>" + this.ioMode() + "\n"
+            + this.SPARK_NETWORK_IO_PREFERDIRECTBUFS_KEY + "=>" + this.preferDirectBufs() + "\n"
+            + this.SPARK_NETWORK_IO_CONNECTIONTIMEOUT_KEY + "=>" + this.connectionTimeoutMs() + "\n"
+            + this.SPARK_NETWORK_IO_BACKLOG_KEY + "=>" + this.backLog() + "\n"
+            + this.SPARK_NETWORK_IO_NUMCONNECTIONSPERPEER_KEY + "=>" + this.numConnectionsPerPeer() + "\n"
+            + this.SPARK_NETWORK_IO_SERVERTHREADS_KEY + "=>" + this.serverThreads() + "\n"
+            + this.SPARK_NETWORK_IO_CLIENTTHREADS_KEY + "=>" + this.clientThreads() + "\n"
+            + this.SPARK_NETWORK_IO_RECEIVEBUFFER_KEY + "=>" + this.receiveBuf() + "\n"
+            + this.SPARK_NETWORK_IO_SENDBUFFER_KEY + "=>" + this.sendBuf() + "\n"
+            + this.SPARK_NETWORK_SASL_TIMEOUT_KEY + "=>" + this.authRTTimeoutMs() + "\n"
+            + this.SPARK_NETWORK_IO_MAXRETRIES_KEY + "=>" + this.maxIORetries() + "\n"
+            + this.SPARK_NETWORK_IO_RETRYWAIT_KEY + "=>" + this.ioRetryWaitTimeMs() + "\n"
+            + this.SPARK_NETWORK_IO_LAZYFD_KEY + "=>" + this.lazyFileDescriptor() + "\n"
+            + this.SPARK_NETWORK_VERBOSE_METRICS + "=>" + this.verboseMetrics() + "\n"
+            + this.SPARK_NETWORK_IO_ENABLETCPKEEPALIVE_KEY + "=>" + this.enableTcpKeepAlive() + "\n";
   }
+  // @Override
+  // public String toString() {
+  //   return "TransportConf{" +
+  //           "SPARK_NETWORK_IO_MODE_KEY='" + SPARK_NETWORK_IO_MODE_KEY + '\'' +
+  //           ", SPARK_NETWORK_IO_PREFERDIRECTBUFS_KEY='" + SPARK_NETWORK_IO_PREFERDIRECTBUFS_KEY + '\'' +
+  //           ", SPARK_NETWORK_IO_CONNECTIONTIMEOUT_KEY='" + SPARK_NETWORK_IO_CONNECTIONTIMEOUT_KEY + '\'' +
+  //           ", SPARK_NETWORK_IO_BACKLOG_KEY='" + SPARK_NETWORK_IO_BACKLOG_KEY + '\'' +
+  //           ", SPARK_NETWORK_IO_NUMCONNECTIONSPERPEER_KEY='" + SPARK_NETWORK_IO_NUMCONNECTIONSPERPEER_KEY + '\'' +
+  //           ", SPARK_NETWORK_IO_SERVERTHREADS_KEY='" + SPARK_NETWORK_IO_SERVERTHREADS_KEY + '\'' +
+  //           ", SPARK_NETWORK_IO_CLIENTTHREADS_KEY='" + SPARK_NETWORK_IO_CLIENTTHREADS_KEY + '\'' +
+  //           ", SPARK_NETWORK_IO_RECEIVEBUFFER_KEY='" + SPARK_NETWORK_IO_RECEIVEBUFFER_KEY + '\'' +
+  //           ", SPARK_NETWORK_IO_SENDBUFFER_KEY='" + SPARK_NETWORK_IO_SENDBUFFER_KEY + '\'' +
+  //           ", SPARK_NETWORK_SASL_TIMEOUT_KEY='" + SPARK_NETWORK_SASL_TIMEOUT_KEY + '\'' +
+  //           ", SPARK_NETWORK_IO_MAXRETRIES_KEY='" + SPARK_NETWORK_IO_MAXRETRIES_KEY + '\'' +
+  //           ", SPARK_NETWORK_IO_RETRYWAIT_KEY='" + SPARK_NETWORK_IO_RETRYWAIT_KEY + '\'' +
+  //           ", SPARK_NETWORK_IO_LAZYFD_KEY='" + SPARK_NETWORK_IO_LAZYFD_KEY + '\'' +
+  //           ", SPARK_NETWORK_VERBOSE_METRICS='" + SPARK_NETWORK_VERBOSE_METRICS + '\'' +
+  //           ", SPARK_NETWORK_IO_ENABLETCPKEEPALIVE_KEY='" + SPARK_NETWORK_IO_ENABLETCPKEEPALIVE_KEY + '\'' +
+  //           ", conf=" + conf +
+  //           ", module='" + module + '\'' +
+  //           '}';
+  // }
 }

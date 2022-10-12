@@ -98,6 +98,7 @@ public class TransportServer implements Closeable {
   }
 
   private void init(String hostToBind, int portToBind) {
+    logger.info("============== TransportServer init");
 
     IOMode ioMode = IOMode.valueOf(conf.ioMode());
     EventLoopGroup bossGroup = NettyUtils.createEventLoop(ioMode, 1,
