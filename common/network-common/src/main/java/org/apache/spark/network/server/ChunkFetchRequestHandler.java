@@ -144,6 +144,10 @@ public class ChunkFetchRequestHandler extends SimpleChannelInboundHandler<ChunkF
     return channelFuture.addListener((ChannelFutureListener) future -> {
       if (future.isSuccess()) {
         logger.trace("Sent result {} to client {}", result, remoteAddress);
+        logger.error(String.format("vajatest Error sending result %s to %s; closing connection",
+                result, remoteAddress), future.cause());
+        // java.nio.channels.ClosedChannel
+        channel.close();
       } else {
         logger.error(String.format("Error sending result %s to %s; closing connection",
           result, remoteAddress), future.cause());
